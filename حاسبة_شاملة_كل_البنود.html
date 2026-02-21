@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>حاسبة لو كادو الشاملة</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px; 
+        }
+        .container { 
+            max-width: 1600px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header { 
+            background: linear-gradient(135deg, #1F4E78 0%, #2C5F7C 100%);
+            color: white; 
+            padding: 25px; 
+            text-align: center; 
+        }
+        .header h1 { font-size: 2.2em; margin-bottom: 5px; }
+        .header p { opacity: 0.9; }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 500px 1fr;
+            gap: 0;
+        }
+        
+        .sidebar { 
+            background: #f5f7fa; 
+            padding: 25px;
+            border-left: 3px solid #1F4E78;
+            overflow-y: auto;
+            max-height: 900px;
+        }
+        
+        .results { 
+            padding: 25px;
+            overflow-y: auto;
+            max-height: 900px;
+        }
+        
+        .input-section { 
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .input-section h3 { 
+            color: #1F4E78;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1F4E78;
+            font-size: 1.2em;
+        }
+        
+        .input-row { 
+            display: grid;
+            grid-template-columns: 1fr 140px;
+            gap: 10px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+        
+        .input-row label { 
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95em;
+        }
+        
+        .input-row input { 
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            text-align: right;
+            transition: border 0.3s;
+        }
+        
+        .input-row input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .calc-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transition: transform 0.2s;
+        }
+        
+        .calc-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+        }
+        
+        .result-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .result-card h3 {
+            font-size: 1em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .result-card .value {
+            font-size: 2.8em;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-box {
+            background: white;
+            padding: 18px;
+            border-radius: 10px;
+            border-right: 4px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .metric-box h4 {
+            color: #666;
+            font-size: 0.85em;
+            margin-bottom: 8px;
+        }
+        
+        .metric-box .value {
+            color: #1F4E78;
+            font-size: 1.6em;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .chart-container h3 {
+            color: #1F4E78;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        th {
+            background: #1F4E78;
+            color: white;
+            padding: 15px;
+            text-align: right;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            text-align: right;
+        }
+        
+        .total-row {
+            background: #FFF2CC !important;
+            font-weight: bold;
+        }
+        
+        .risk-section {
+            background: #FFF8E1;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-right: 4px solid #FFA726;
+        }
+        
+        .risk-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .risk-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+        }
+        
+        .toggle-btn { background: #FFA726; color: white; }
+        .add-btn { background: #4CAF50; color: white; }
+        
+        .risk-list {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s;
+        }
+        
+        .risk-list.show { max-height: 1000px; }
+        
+        .risk-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            position: relative;
+            border-right: 3px solid #FF6B6B;
+        }
+        
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .add-form {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s;
+        }
+        
+        .add-form.show { max-height: 400px; }
+        
+        .add-form input,
+        .add-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+        }
+        
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .form-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .highlight { background: #FFF9C4; padding: 2px 6px; border-radius: 3px; }
+        
+        @media (max-width: 1200px) {
+            .main-grid { grid-template-columns: 1fr; }
+            .sidebar { border-left: none; border-bottom: 3px solid #1F4E78; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧮 حاسبة لو كادو الشاملة</h1>
+            <p>تحكم كامل في جميع البنود - كل شيء قابل للتعديل</p>
+        </div>
+        
+        <div class="main-grid">
+            <!-- SIDEBAR - ALL INPUTS -->
+            <div class="sidebar">
+                
+                <!-- REVENUE -->
+                <div class="input-section">
+                    <h3>📊 الإيرادات</h3>
+                    <div class="input-row">
+                        <label>المبيعات اليومية (ريال)</label>
+                        <input type="number" id="dailySales" value="5000">
+                    </div>
+                    <div class="input-row">
+                        <label>أيام العمل السنوية</label>
+                        <input type="number" id="workingDays" value="330">
+                    </div>
+                    <div class="input-row">
+                        <label>متوسط سعر الزوج (ريال)</label>
+                        <input type="number" id="avgPrice" value="355">
+                    </div>
+                </div>
+                
+                <!-- COGS -->
+                <div class="input-section">
+                    <h3>📦 تكلفة البضاعة</h3>
+                    <div class="input-row">
+                        <label>تكلفة الزوج (ريال)</label>
+                        <input type="number" id="cogsPerPair" value="150">
+                    </div>
+                </div>
+                
+                <!-- RENT & UTILITIES -->
+                <div class="input-section">
+                    <h3>🏢 الإيجار والمرافق</h3>
+                    <div class="input-row">
+                        <label>الإيجار الشهري (ريال)</label>
+                        <input type="number" id="rent" value="20000">
+                    </div>
+                    <div class="input-row">
+                        <label>الكهرباء والماء (شهري)</label>
+                        <input type="number" id="utilities" value="2000">
+                    </div>
+                </div>
+                
+                <!-- INSURANCE & MARKETING -->
+                <div class="input-section">
+                    <h3>🛡️ التأمين والتسويق</h3>
+                    <div class="input-row">
+                        <label>التأمين السنوي (ريال)</label>
+                        <input type="number" id="insurance" value="40000">
+                    </div>
+                    <div class="input-row">
+                        <label>التسويق الشهري (ريال)</label>
+                        <input type="number" id="marketing" value="10000">
+                    </div>
+                </div>
+                
+                <!-- OPERATOR SALARIES -->
+                <div class="input-section" style="border: 3px solid #22C55E;">
+                    <h3>👔 رواتب المشغلين <span class="highlight">جديد</span></h3>
+                    <div class="input-row">
+                        <label>راتب المشغل الأول (شهري)</label>
+                        <input type="number" id="salary1" value="0">
+                    </div>
+                    <div class="input-row">
+                        <label>راتب المشغل الثاني (شهري)</label>
+                        <input type="number" id="salary2" value="0">
+                    </div>
+                </div>
+                
+                <!-- PROFIT SHARE -->
+                <div class="input-section" style="border: 3px solid #22C55E;">
+                    <h3>📈 نسبة الربح <span class="highlight">جديد</span></h3>
+                    <div class="input-row">
+                        <label>نسبة الربح (%)</label>
+                        <input type="number" id="profitShare" value="0" step="0.5">
+                    </div>
+                    <div class="input-row">
+                        <label>احتساب من:</label>
+                        <select id="profitBase" style="padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
+                            <option value="gross">مجمل الربح</option>
+                            <option value="net">صافي الربح</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- STAFF -->
+                <div class="input-section">
+                    <h3>👥 الموظفين</h3>
+                    <div class="input-row">
+                        <label>عدد الموظفين</label>
+                        <input type="number" id="staffCount" value="3">
+                    </div>
+                    <div class="input-row">
+                        <label>متوسط الراتب الشهري (ريال)</label>
+                        <input type="number" id="avgSalary" value="5000">
+                    </div>
+                    <div class="input-row">
+                        <label>نسبة GOSI (%)</label>
+                        <input type="number" id="gosiRate" value="21.5" step="0.1">
+                    </div>
+                </div>
+                
+                <!-- OTHER EXPENSES -->
+                <div class="input-section">
+                    <h3>💸 مصروفات أخرى</h3>
+                    <div class="input-row">
+                        <label>صيانة شهرية (ريال)</label>
+                        <input type="number" id="maintenance" value="0">
+                    </div>
+                    <div class="input-row">
+                        <label>نظافة شهرية (ريال)</label>
+                        <input type="number" id="cleaning" value="0">
+                    </div>
+                    <div class="input-row">
+                        <label>أمن شهري (ريال)</label>
+                        <input type="number" id="security" value="0">
+                    </div>
+                    <div class="input-row">
+                        <label>مصروفات متنوعة شهرية</label>
+                        <input type="number" id="misc" value="0">
+                    </div>
+                </div>
+                
+                <button class="calc-btn" onclick="calculate()">🚀 احسب الآن</button>
+            </div>
+            
+            <!-- RESULTS -->
+            <div class="results">
+                
+                <!-- RISKS -->
+                <div class="risk-section">
+                    <h3 style="color: #C92A2A; margin-bottom: 10px;">⚠️ إدارة المخاطر</h3>
+                    <div class="risk-buttons">
+                        <button class="toggle-btn" onclick="toggleRisk()">
+                            <span id="toggleText">👁️ إظهار المخاطر</span>
+                        </button>
+                        <button class="add-btn" onclick="showAddForm()">➕ إضافة مخاطرة</button>
+                    </div>
+                    
+                    <div id="addForm" class="add-form">
+                        <input type="text" id="newTitle" placeholder="عنوان المخاطرة">
+                        <textarea id="newDesc" placeholder="وصف المخاطرة" rows="3"></textarea>
+                        <div class="form-buttons">
+                            <button style="background: #4CAF50; color: white;" onclick="addRisk()">💾 حفظ</button>
+                            <button style="background: #999; color: white;" onclick="hideAddForm()">❌ إلغاء</button>
+                        </div>
+                    </div>
+                    
+                    <div id="riskList" class="risk-list"></div>
+                </div>
+                
+                <!-- MAIN RESULT -->
+                <div class="result-card">
+                    <h3>صافي الربح السنوي (100% لـ ABAAD)</h3>
+                    <div class="value" id="netProfit">0 ريال</div>
+                    <div style="margin-top: 10px; opacity: 0.9;" id="netMargin">هامش: 0%</div>
+                </div>
+                
+                <!-- METRICS -->
+                <div class="metrics-grid">
+                    <div class="metric-box">
+                        <h4>إجمالي الإيرادات</h4>
+                        <div class="value" id="revenue">0</div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>مجمل الربح</h4>
+                        <div class="value" id="gross">0</div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>حصة ABAAD (100%)</h4>
+                        <div class="value" id="abaad">0</div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>تعويض المشغلين</h4>
+                        <div class="value" id="operators">0</div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>عائد الاستثمار</h4>
+                        <div class="value" id="roi">0%</div>
+                    </div>
+                    <div class="metric-box">
+                        <h4>فترة الاسترداد</h4>
+                        <div class="value" id="payback">0 سنة</div>
+                    </div>
+                </div>
+                
+                <!-- CHARTS -->
+                <div class="chart-container">
+                    <h3>📊 توزيع التكاليف</h3>
+                    <canvas id="costChart" height="100"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>💰 توزيع الربح</h3>
+                    <canvas id="profitChart" height="100"></canvas>
+                </div>
+                
+                <!-- TABLE -->
+                <div class="chart-container">
+                    <h3>📋 القائمة المالية التفصيلية</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>البند</th>
+                                <th>المبلغ (ريال)</th>
+                                <th>% من الإيرادات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let risks = [
+            {id: 1, title: 'مخاطر الاحتيال', desc: 'السيطرة على المستودع (470-880K ريال/سنة)'},
+            {id: 2, title: 'مخاطر المبيعات', desc: 'إذا المبيعات <4K/يوم، خسارة'},
+            {id: 3, title: 'مخاطر الرواتب', desc: 'رواتب ثابتة حتى لو خاسر'}
+        ];
+        
+        let costChart = null;
+        let profitChart = null;
+        let isRiskVisible = false;
+        
+        function renderRisks() {
+            document.getElementById('riskList').innerHTML = risks.map(r => 
+                '<div class="risk-item">' +
+                '<button class="delete-btn" onclick="deleteRisk(' + r.id + ')">🗑️</button>' +
+                '<h4>' + r.title + '</h4>' +
+                '<p>' + r.desc + '</p>' +
+                '</div>'
+            ).join('');
+        }
+        
+        function toggleRisk() {
+            const list = document.getElementById('riskList');
+            const text = document.getElementById('toggleText');
+            isRiskVisible = !isRiskVisible;
+            if (isRiskVisible) {
+                list.classList.add('show');
+                text.textContent = '🙈 إخفاء المخاطر';
+            } else {
+                list.classList.remove('show');
+                text.textContent = '👁️ إظهار المخاطر';
+            }
+        }
+        
+        function showAddForm() {
+            document.getElementById('addForm').classList.add('show');
+        }
+        
+        function hideAddForm() {
+            document.getElementById('addForm').classList.remove('show');
+            document.getElementById('newTitle').value = '';
+            document.getElementById('newDesc').value = '';
+        }
+        
+        function addRisk() {
+            const title = document.getElementById('newTitle').value.trim();
+            const desc = document.getElementById('newDesc').value.trim();
+            if (!title || !desc) { alert('أدخل العنوان والوصف'); return; }
+            const id = Math.max(...risks.map(r => r.id), 0) + 1;
+            risks.push({id, title, desc});
+            renderRisks();
+            hideAddForm();
+            if (!isRiskVisible) toggleRisk();
+        }
+        
+        function deleteRisk(id) {
+            const r = risks.find(x => x.id === id);
+            if (confirm('حذف: ' + r.title + '?')) {
+                risks = risks.filter(x => x.id !== id);
+                renderRisks();
+            }
+        }
+        
+        function calculate() {
+            const daily = parseFloat(document.getElementById('dailySales').value) || 0;
+            const days = parseInt(document.getElementById('workingDays').value) || 0;
+            const price = parseFloat(document.getElementById('avgPrice').value) || 1;
+            const cogs = parseFloat(document.getElementById('cogsPerPair').value) || 0;
+            const rent = parseFloat(document.getElementById('rent').value) || 0;
+            const util = parseFloat(document.getElementById('utilities').value) || 0;
+            const ins = parseFloat(document.getElementById('insurance').value) || 0;
+            const mkt = parseFloat(document.getElementById('marketing').value) || 0;
+            const sal1 = parseFloat(document.getElementById('salary1').value) || 0;
+            const sal2 = parseFloat(document.getElementById('salary2').value) || 0;
+            const share = parseFloat(document.getElementById('profitShare').value) / 100 || 0;
+            const base = document.getElementById('profitBase').value;
+            const staff = parseInt(document.getElementById('staffCount').value) || 0;
+            const avgSal = parseFloat(document.getElementById('avgSalary').value) || 0;
+            const gosiRate = parseFloat(document.getElementById('gosiRate').value) / 100 || 0;
+            const maint = parseFloat(document.getElementById('maintenance').value) || 0;
+            const clean = parseFloat(document.getElementById('cleaning').value) || 0;
+            const sec = parseFloat(document.getElementById('security').value) || 0;
+            const misc = parseFloat(document.getElementById('misc').value) || 0;
+            
+            const rev = daily * days;
+            const pairs = rev / price;
+            const totalCOGS = pairs * cogs;
+            const gp = rev - totalCOGS;
+            const gpMargin = rev > 0 ? gp / rev * 100 : 0;
+            
+            const rentY = rent * 12;
+            const utilY = util * 12;
+            const mktY = mkt * 12;
+            const opSal = (sal1 + sal2) * 12;
+            const stSal = staff * avgSal * 12;
+            const gosi = stSal * gosiRate;
+            const maintY = maint * 12;
+            const cleanY = clean * 12;
+            const secY = sec * 12;
+            const miscY = misc * 12;
+            
+            const opex = rentY + utilY + ins + mktY + opSal + stSal + gosi + maintY + cleanY + secY + miscY;
+            const ebitda = gp - opex;
+            const opShare = base === 'gross' ? gp * share : Math.max(0, ebitda * share);
+            const np = ebitda - opShare;
+            const npMargin = rev > 0 ? np / rev * 100 : 0;
+            const abaadShare = np;
+            const opComp = opSal + opShare;
+            const roi = abaadShare / 1500000 * 100;
+            const payback = abaadShare > 0 ? 1500000 / abaadShare : 0;
+            
+            document.getElementById('netProfit').textContent = np.toLocaleString('ar-SA', {maximumFractionDigits: 0}) + ' ريال';
+            document.getElementById('netMargin').textContent = 'هامش: ' + npMargin.toFixed(1) + '%';
+            document.getElementById('revenue').textContent = rev.toLocaleString('ar-SA', {maximumFractionDigits: 0});
+            document.getElementById('gross').textContent = gp.toLocaleString('ar-SA', {maximumFractionDigits: 0});
+            document.getElementById('abaad').textContent = abaadShare.toLocaleString('ar-SA', {maximumFractionDigits: 0});
+            document.getElementById('operators').textContent = opComp.toLocaleString('ar-SA', {maximumFractionDigits: 0});
+            document.getElementById('roi').textContent = roi.toFixed(1) + '%';
+            document.getElementById('payback').textContent = payback.toFixed(1) + ' سنة';
+            
+            const tbody = document.getElementById('tableBody');
+            const rows = [
+                ['إجمالي المبيعات', rev, 100],
+                ['تكلفة البضاعة', totalCOGS, totalCOGS/rev*100],
+                ['<strong>مجمل الربح</strong>', gp, gpMargin, 'total-row'],
+                ['الإيجار', rentY, rentY/rev*100],
+                ['المرافق', utilY, utilY/rev*100],
+                ['التأمين', ins, ins/rev*100],
+                ['التسويق', mktY, mktY/rev*100],
+                ['رواتب المشغلين', opSal, opSal/rev*100],
+                ['رواتب الموظفين', stSal, stSal/rev*100],
+                ['GOSI', gosi, gosi/rev*100],
+                ['صيانة', maintY, maintY/rev*100],
+                ['نظافة', cleanY, cleanY/rev*100],
+                ['أمن', secY, secY/rev*100],
+                ['متنوعة', miscY, miscY/rev*100],
+                ['<strong>إجمالي المصروفات</strong>', opex, opex/rev*100, 'total-row'],
+                ['<strong>EBITDA</strong>', ebitda, ebitda/rev*100, 'total-row'],
+                ['نسبة المشغلين', opShare, opShare/rev*100],
+                ['<strong>صافي الربح (ABAAD 100%)</strong>', np, npMargin, 'total-row']
+            ];
+            
+            tbody.innerHTML = rows.map(r => 
+                '<tr class="' + (r[3] || '') + '">' +
+                '<td>' + r[0] + '</td>' +
+                '<td>' + (typeof r[1] === 'number' ? r[1].toLocaleString('ar-SA', {maximumFractionDigits: 0}) : r[1]) + '</td>' +
+                '<td>' + (typeof r[2] === 'number' ? r[2].toFixed(1) + '%' : r[2]) + '</td>' +
+                '</tr>'
+            ).join('');
+            
+            if (costChart) costChart.destroy();
+            const costLabels = ['البضاعة', 'إيجار', 'مشغلين', 'موظفين', 'GOSI', 'تسويق', 'مرافق', 'تأمين'];
+            const costData = [totalCOGS, rentY, opSal, stSal, gosi, mktY, utilY, ins];
+            if (maintY > 0) { costLabels.push('صيانة'); costData.push(maintY); }
+            if (cleanY > 0) { costLabels.push('نظافة'); costData.push(cleanY); }
+            if (secY > 0) { costLabels.push('أمن'); costData.push(secY); }
+            if (miscY > 0) { costLabels.push('متنوعة'); costData.push(miscY); }
+            
+            costChart = new Chart(document.getElementById('costChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: costLabels,
+                    datasets: [{
+                        data: costData,
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#E7E9ED', '#C9CBCF', '#8DD1E1', '#FFD700', '#FF69B4', '#32CD32']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+            
+            if (profitChart) profitChart.destroy();
+            const pLabels = ['ABAAD (100%)'];
+            const pData = [abaadShare];
+            const pColors = ['#4CAF50'];
+            if (opShare > 0) {
+                pLabels.push('المشغلين - نسبة');
+                pData.push(opShare);
+                pColors.push('#FFC107');
+            }
+            profitChart = new Chart(document.getElementById('profitChart'), {
+                type: 'pie',
+                data: {
+                    labels: pLabels,
+                    datasets: [{ data: pData, backgroundColor: pColors }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+        
+        renderRisks();
+        calculate();
+    </script>
+</body>
+</html>
